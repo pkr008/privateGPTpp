@@ -3,21 +3,25 @@ import axios from 'axios';
 import './App.css';
 import robot from '../public/robot.png';
 
+const MODEL:string = 'GPT4All';
 const client = axios.create({
   baseURL: "http://127.0.0.1:7500"
 });
 
 function App() {
   const [selectedGrade, setSelectedGrade] = useState(null);
-  const [latestQuestion, setLatestQuestion] = useState('');
-  //const [questions, setQuestions] = useState('');
-  const [answers, setAnswers] = useState(['']); // Initialize with a default answer
-  const [question, setQuestion] = useState('');
+  const [placeholder, setPlaceholder] = useState('');
+  const [answer, setAnswer] = useState(''); // Initialize with a default answer
+  const [current_question, setQuestion] = useState(''); // Initialize with a default answer
   //const [name, setName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File>();
   const [dragIsOver, setDragIsOver] = useState(false);
   const [_files, setFiles] = useState<File[]>([]);
-
+  interface chatinfo {
+    question: string;
+    answer: string;
+  }
+  const [chat, setChat] = useState<chatinfo[]>([]);
   const grade_promth = { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'fifth', 6: 'sixth', 7: 'seventh', 8: 'eighth', 9: 'ninth', 10: 'tenth' }
 
   const chooseGrade = (grade: any) => {
@@ -25,8 +29,9 @@ function App() {
   };
 
   const handleQuestionChange = (event: any) => {
-    setQuestion(event.target.value);
+    setPlaceholder(event.target.value);
   };
+
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragIsOver(true);
@@ -52,6 +57,7 @@ function App() {
       }
     });
   };
+
   const selectFile = ((event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       setSelectedFile(event.target.files[0]);
@@ -75,46 +81,64 @@ function App() {
       Post_file(formData)
     }
   };
+  const updatechat = (question:string,answer:string) => {
+    const interaction = {question: question, answer: answer };
+    setChat([...chat, interaction]);
+  }
 
-
-  const handleSendMessage = () => {
+  const handleSendMessage = (question:string) => {
     if (question.trim() !== '') {
       if (selectedGrade === null) {
         alert('Please select a grade first');
         return;
       }
-      const promth = " Explain it to a " + grade_promth[selectedGrade] + " grader ";
-      setLatestQuestion(question);
-      //setQuestions([...questions, question:string]);
-
-      console.log(question)
+      const promth = " If you were explaining to an elementary student in " + grade_promth[selectedGrade] + " grade, how would you explain this: ";
+      
+      console.log("inside:", question)
       const addPosts = (question: string) => {
-        client.post('/predict', { prompt: question, model: 'GPT4All' })
+        client.post('/predict', { prompt: question, model: MODEL })
           .then((response) => {
             console.log(response.data.answer);
-            setAnswers([...answers, response.data.answer]);
+            setAnswer(response.data.answer);
+            updatechat(question,response.data.answer);
           }
           )
       }
-      addPosts(question + promth);
-
-      //setAnswers(['I don\'t know']); // Reset the answers when a new question is sent
-      //setQuestion('');
+      addPosts(promth + question);
     }
+    console.log("chat:", chat)
   };
 
   const handleEnterKey = (event: any) => {
     if (event.key === 'Enter') {
-      handleSendMessage();
+      setQuestion(event.target.value);
+      setAnswer('Thinking...');
+      handleSendMessage(event.target.value);
     }
   };
 
 
   return (
     <>
+      <div className='Left'>
+          <div className="chat">
+           {chat.map((interaction) => (
+              <div
+                style={{
+                  alignItems: 'flex-start',
+                  marginBottom: '10px',
+                  borderBlockColor: 'black',
+                }}
+              >
+                <p style={{ margin: '0px' }}>Question: {interaction.question}</p>
+                <p style={{ margin: '0px' }}>Answere: {interaction.answer}</p>
+              </div>
+            ))}
+          </div>
+      </div>
+      <div className='Right'>
       <div className="header-container">
         <h1> <img src={robot} alt="Robot" className="robot-image" />  Teaching Assistant</h1>
-        
       </div>
       <div className='Upload_file'>
         <div
@@ -164,7 +188,7 @@ function App() {
             <input
               type="text"
               placeholder="Ask a question"
-              value={question}
+              value={placeholder}
               onChange={handleQuestionChange}
               onKeyDown={handleEnterKey}
               autoFocus
@@ -172,11 +196,12 @@ function App() {
             />
           </div>
           <div className="question-display">
-            <p>You said: {latestQuestion}</p>
-            <p>Teacher: {answers}</p>
+            <p>You said: {current_question}</p>
+            <p>Teacher: {answer}</p>
           </div>
         </div>
       ) : null}
+      </div>
     </>
   );
 }

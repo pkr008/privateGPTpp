@@ -11,18 +11,25 @@
   display: flex;
   align-items: center;
 }
+.Upload_file {
+  left:'50%';
+  top:'50%';
+  Transform: 'translate(-50%, -50%)';
+}
+.dropzone {
+  left:'50%';
+  top:'50%';
+  Transform: 'translate(-50%, -50%)';
+}
 
 .Left {
-    display: list-item;
+    display: flex;
     width: 250px;
     height: 80%;
     overflow-y: scroll;
 }
 .Right{
     height: 100%;
-    background-image: url('../public/robot.png');
-    background-size: cover;
-    background-repeat: no-repeat;
 }
 
 .robot-image {

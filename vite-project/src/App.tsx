@@ -95,8 +95,9 @@ function App() {
       const promth = " If you were explaining to an elementary student in " + grade_promth[selectedGrade] + " grade, how would you explain this: ";
       
       console.log("inside:", question)
-      const addPosts = (question: string) => {
-        client.post('/predict', { prompt: question, model: MODEL })
+      const addPosts = (question: string, promth:string) => {
+        let request = question + promth;
+        client.post('/predict', { prompt: request, model: MODEL })
           .then((response) => {
             console.log(response.data.answer);
             setAnswer(response.data.answer);
@@ -104,7 +105,7 @@ function App() {
           }
           )
       }
-      addPosts(promth + question);
+      addPosts(question, promth);
     }
     console.log("chat:", chat)
   };
@@ -147,6 +148,7 @@ function App() {
           onDrop={handleDrop}
           style={{
             display: 'flex',
+            textAlign: 'center',
             height: '30px',
             width: '84px',
             border: '1px dotted',

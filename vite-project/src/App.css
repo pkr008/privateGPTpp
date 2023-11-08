@@ -8,26 +8,47 @@
 .top-header {
   text-align: center;
   font-size: 3.2em;
-  padding: 10px;
-  margin-top: 20px; /* Add margin at the top to move the text up */
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.robot-image {
+  margin-right: 10px;
+  width: 200px;
+  height: 200px;
 }
 
 .grade-buttons button {
-  background-color: rgba(250, 140, 97, 0.87);/* Change to your desired background color */
-  color: rgb(24, 22, 22); /* Change to your desired text color */
-  border: none; /* Remove the border or customize it as needed */
-  padding: 7px 10px; /* Adjust the padding as needed */
-  margin: 1px; /* Add margin to space out the buttons */
+  background-color: rgba(250, 140, 97, 0.87);
+  /* Change to your desired background color */
+  color: rgb(24, 22, 22);
+  /* Change to your desired text color */
+  border: none;
+  /* Remove the border or customize it as needed */
+  padding: 7px 10px;
+  /* Adjust the padding as needed */
+  margin: 1px;
+  /* Add margin to space out the buttons */
 }
 
 .chat-box {
   color: rgba(250, 140, 97, 0.87);
 }
 
+.header-containter {
+  display: flex;
+  align-items: center;
+}
+
+
 .question-input {
-  width: 40%; /* Set the width to your desired size (e.g., 300px) */
-  padding: 10px; /* Add padding to the input box */
-  margin: 5px 0; /* Add margin to space out the input box */
+  width: 40%;
+  /* Set the width to your desired size (e.g., 300px) */
+  padding: 10px;
+  /* Add padding to the input box */
+  margin: 5px 0;
+  /* Add margin to space out the input box */
 }
 
 .logo {
@@ -36,9 +57,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -47,6 +70,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

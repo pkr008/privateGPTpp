@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from langchain.chains import RetrievalQA
@@ -282,15 +282,21 @@ def call_model(query, model_type, hide_source):
 app = Flask(__name__)
 CORS(app)
 
+react_folder = "vite-project"
+assets_folder = os.getcwd() + "/templates/assets"
+
 @app.route("/")
 def hello():
     #return "<p>Hello, World!</p>"
     return render_template('index.html')
 
+@app.route("/assets/<path:path>")
+def send_assets(path):
+    return send_from_directory(assets_folder, path)
+
 @app.route("/", methods=['POST'])
 def hello_post():
     return "<p>Hello, World!</p>"
-    
 
 @app.route("/upload", methods=['POST'])
 def upload():
@@ -337,7 +343,7 @@ def predict():
     # Concatenate the sources list to a string
     sources = '\n\n'.join([source[1] for source in sources])
     # Concatenate the sources string to the answer string and add Source: to the beginning of the sources string
-    answer = answer + '\n\nSources :\n\n' + sources
+    #answer = answer + '\n\nSources :\n\n' + sources
     # Return the answer and sources as a dict which can be read in json format in javascript
     return {'answer': answer}
 

@@ -1,40 +1,143 @@
-import React, { useState } from 'react';
+import { DragEvent, ChangeEvent, useState } from 'react';
+import axios from 'axios';
 import './App.css';
+
+const client = axios.create({
+  baseURL: "http://127.0.0.1:7500" 
+});
 
 function App() {
   const [selectedGrade, setSelectedGrade] = useState(null);
   const [latestQuestion, setLatestQuestion] = useState('');
-  const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState(['I don\'t know']); // Initialize with a default answer
+  //const [questions, setQuestions] = useState('');
+  const [answers, setAnswers] = useState(['']); // Initialize with a default answer
   const [question, setQuestion] = useState('');
+  //const [name, setName] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File>();
+  const [dragIsOver, setDragIsOver] = useState(false);
+  const [_files, setFiles] = useState<File[]>([]);
 
-  const chooseGrade = (grade) => {
+  const grade_promth = {1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'fifth', 6: 'sixth', 7: 'seventh', 8: 'eighth', 9: 'ninth', 10: 'tenth'}
+
+  const chooseGrade = (grade:any) => {
     setSelectedGrade(grade);
   };
 
-  const handleQuestionChange = (event) => {
+  const handleQuestionChange = (event:any) => {
     setQuestion(event.target.value);
   };
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      setDragIsOver(true);
+  };
 
-  const handleSendMessage = () => {
-    if (question.trim() !== '') {
-      setLatestQuestion(question);
-      setQuestions([...questions, question]);
-      setAnswers(['I don\'t know']); // Reset the answers when a new question is sent
-      setQuestion('');
+  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      setDragIsOver(false);
+  };
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      setDragIsOver(false);
+      
+    const droppedFiles:Array<File> = Array.from(event.dataTransfer.files);
+    setFiles(droppedFiles);
+
+    droppedFiles.forEach((file) => {
+      if (file){
+      const formData = new FormData();
+      formData.append("file", file);
+      Post_file(formData)
+      }
+    });
+  };
+  const selectFile = ((event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setSelectedFile(event.target.files[0]);
+      }
+    })
+
+  const Post_file = (formData:FormData) => {
+    client.post('/upload', formData)
+    .then ((res) => {
+      alert("File uploaded successfully.");
+      console.log(res);
+      });
+      //.catch((err) => alert("File upload failed. Please try again later."));
+  };
+
+  const submitForm = (event:any) => {
+    event.preventDefault();
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      Post_file(formData)
     }
   };
 
-  const handleEnterKey = (event) => {
+
+    const handleSendMessage = () => {
+    if (question.trim() !== '') {
+      if (selectedGrade === null) {
+        alert('Please select a grade first');
+        return;
+      }
+      const promth = " Explain it to a " + grade_promth[selectedGrade] + " grader ";
+      setLatestQuestion(question);
+      //setQuestions([...questions, question:string]);
+      
+      console.log(question)
+      const addPosts = (question:string) => {
+        client.post('/predict', {prompt: question, model: 'GPT4All'})
+        .then ((response) => {
+          console.log(response.data.answer);
+          setAnswers([...answers, response.data.answer]);
+          }
+        )
+      }
+      addPosts(question + promth);
+
+      //setAnswers(['I don\'t know']); // Reset the answers when a new question is sent
+      //setQuestion('');
+    }
+  };
+
+  const handleEnterKey = (event:any) => {
     if (event.key === 'Enter') {
       handleSendMessage();
     }
   };
 
+
   return (
     <>
       <div>
         <h1 className="top-header">Teaching Assistant</h1>
+      </div>
+      <div className='Upload_file'>
+        <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '50px',
+          width: '300px',
+          border: '1px dotted',
+          backgroundColor: dragIsOver ? 'lightgray' : 'white',
+        }}
+        >
+        Drag and drop some files here
+        </div>
+        <form>
+          <input
+            type="file"
+            onChange={selectFile} 
+          />
+          <button onClick={submitForm}>Submit</button>
+        </form>
       </div>
       <div className="card">
         {selectedGrade === null ? (
@@ -58,7 +161,7 @@ function App() {
           <div className="input-box">
             <input
               type="text"
-              placeholder="Send a message"
+              placeholder="Ask a question"
               value={question}
               onChange={handleQuestionChange}
               onKeyDown={handleEnterKey}
@@ -68,7 +171,7 @@ function App() {
           </div>
           <div className="question-display">
             <p>You said: {latestQuestion}</p>
-            <p>Teacher: {answers[0]}</p>
+            <p>Teacher: {answers}</p>
           </div>
         </div>
       ) : null}
